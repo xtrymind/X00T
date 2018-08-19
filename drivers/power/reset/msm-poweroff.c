@@ -330,6 +330,11 @@ static void msm_restart_prepare(const char *cmd)
 			unsigned long code;
 			int ret;
 			ret = kstrtoul(cmd + 4, 16, &code);
+#ifdef CONFIG_MACH_ASUS_X00T
+			if (!ret && code == 8)
+				qpnp_pon_set_restart_reason(
+					PON_RESTART_REASON_ASUS_UNLOCK);
+#endif
 			if (!ret)
 				__raw_writel(0x6f656d00 | (code & 0xff),
 					     restart_reason);
