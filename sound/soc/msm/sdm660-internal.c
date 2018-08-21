@@ -152,6 +152,12 @@ static char const *bit_format_text[] = {"S16_LE", "S24_LE", "S24_3LE"};
 static const char *const loopback_mclk_text[] = {"DISABLE", "ENABLE"};
 static char const *bt_sample_rate_text[] = {"KHZ_8", "KHZ_16", "KHZ_48"};
 
+#ifdef CONFIG_SND_SOC_AW87339
+extern int aw87339_chipid_spk;
+extern unsigned char aw87339_audio_kspk_spk(void);
+extern unsigned char aw87339_audio_off_spk(void);
+#endif
+
 static SOC_ENUM_SINGLE_EXT_DECL(int0_mi2s_rx_sample_rate, int_mi2s_rate_text);
 static SOC_ENUM_SINGLE_EXT_DECL(int0_mi2s_rx_chs, int_mi2s_ch_text);
 static SOC_ENUM_SINGLE_EXT_DECL(int0_mi2s_rx_format, bit_format_text);
