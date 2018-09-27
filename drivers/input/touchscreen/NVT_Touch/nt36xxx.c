@@ -30,6 +30,7 @@
 #include <linux/kthread.h>
 #include <linux/notifier.h>
 #include <linux/fb.h>
+#include <linux/kobject.h>
 #include "nt36xxx.h"
 
 #if NVT_ITO_TEST
@@ -233,6 +234,44 @@ static uint8_t bTouchIsAwake;
 #define NVT_GESTURE_MODE "tpd_gesture"
 
 static long gesture_mode;
+static int allow_gesture;
+static struct kobject *gesture_kobject;
+
+static ssize_t gesture_show(struct kobject *kobj, struct kobj_attribute *attr,
+			    char *buf)
+{
+	return sprintf(buf, "%d\n", allow_gesture);
+}
+
+static ssize_t gesture_store(struct kobject *kobj, struct kobj_attribute *attr,
+			     const char *buf, size_t count)
+{
+	sscanf(buf, "%du", &allow_gesture);
+	return count;
+}
+
+static struct kobj_attribute gesture_attribute = __ATTR(gesture_mode, 0664,
+							gesture_show,
+							gesture_store);
+
+int create_gesture_node() {
+	int error = 0;
+	pr_info("Gesture Node initialized successfully \n");
+
+	gesture_kobject = kobject_create_and_add("gesture_mode", kernel_kobj);
+	if(!gesture_kobject)
+		return -ENOMEM;
+
+	error = sysfs_create_file(gesture_kobject, &gesture_attribute.attr);
+	if (error)
+		pr_err("failed to create the gesture_node file in /sys/kernel/gesture_mode \n");
+
+	return error;
+}
+
+void destroy_gesture() {
+	kobject_put(gesture_kobject);
+}
 
 static ssize_t nvt_gesture_mode_get_proc(struct file *file, char __user *buffer,
 					 size_t size, loff_t *ppos)
@@ -895,32 +934,32 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id, uint8_t *data)
 
 	switch (gesture_id) {
 	case ID_GESTURE_WORD_C:
-		if (gesture_mode & MASK_GESTURE_C) {
+		if (allow_gesture & MASK_GESTURE_C) {
 			pr_info("Gesture : Word-C.\n");
 			keycode = gesture_key_array[0];
 		}
 		break;
 	case ID_GESTURE_WORD_W:
-		if (gesture_mode & MASK_GESTURE_W) {
+		if (allow_gesture & MASK_GESTURE_W) {
 			pr_info("Gesture : Word-W.\n");
 			keycode = gesture_key_array[1];
 		}
 		break;
 	case ID_GESTURE_WORD_V:
-		if (gesture_mode & MASK_GESTURE_V) {
+		if (allow_gesture & MASK_GESTURE_V) {
 			pr_info("Gesture : Word-V.\n");
 			keycode = gesture_key_array[2];
 		}
 		break;
 	case ID_GESTURE_DOUBLE_CLICK:
-		if (gesture_mode & MASK_GESTURE_DOUBLE_CLICK) {
+		if (allow_gesture & MASK_GESTURE_DOUBLE_CLICK) {
 			is_double_tap = 1;
 			pr_info("Gesture : Double Click.\n");
 			keycode = gesture_key_array[3];
 		}
 		break;
 	case ID_GESTURE_WORD_Z:
-		if (gesture_mode & MASK_GESTURE_Z) {
+		if (allow_gesture & MASK_GESTURE_Z) {
 			pr_info("Gesture : Word-Z.\n");
 			keycode = gesture_key_array[4];
 		}
@@ -934,19 +973,19 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id, uint8_t *data)
 			keycode = gesture_key_array[6];
 			break; */
 	case ID_GESTURE_WORD_e:
-		if (gesture_mode & MASK_GESTURE_E) {
+		if (allow_gesture & MASK_GESTURE_E) {
 			pr_info("Gesture : Word-e.\n");
 			keycode = gesture_key_array[7];
 		}
 		break;
 	case ID_GESTURE_WORD_S:
-		if (gesture_mode & MASK_GESTURE_W) {
+		if (allow_gesture & MASK_GESTURE_W) {
 			pr_info("Gesture : Word-S.\n");
 			keycode = gesture_key_array[8];
 		}
 		break;
 	case ID_GESTURE_SLIDE_UP:
-		if (gesture_mode & MASK_GESTURE_SLIDE_UP) {
+		if (allow_gesture & MASK_GESTURE_SLIDE_UP) {
 			pr_info("Gesture : Slide UP.\n");
 			keycode = gesture_key_array[9];
 		}
@@ -964,6 +1003,7 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id, uint8_t *data)
 			keycode = gesture_key_array[12];
 			break; */
 	default:
+		pr_info("Still in gesture mode.\n");
 		break;
 	}
 
@@ -1576,7 +1616,8 @@ static int32_t nvt_ts_probe(struct i2c_client *client,
 #endif
 
 #if WAKEUP_GESTURE
-	nvt_gesture_mode_proc = proc_create(NVT_GESTURE_MODE, 0666, NULL,
+	ret = create_gesture_node();
+	nvt_gesture_mode_proc = proc_create(NVT_GESTURE_MODE, 0644, NULL,
 					    &gesture_mode_proc_ops);
 	if (!nvt_gesture_mode_proc)
 		pr_err("create proc tpd_gesture failed\n");
@@ -1676,7 +1717,7 @@ static int32_t nvt_ts_suspend(struct device *dev)
 #endif /* #if NVT_TOUCH_ESD_PROTECT */
 
 #if WAKEUP_GESTURE
-	if (((gesture_mode & 0x100) == 0) || ((gesture_mode & 0x0FF) == 0)) {
+	if (!allow_gesture) {
 		disable_irq(ts->client->irq);
 
 		/* ---write i2c command to enter "deep sleep mode"--- */
@@ -1722,7 +1763,7 @@ static int32_t nvt_ts_suspend(struct device *dev)
 	mutex_unlock(&ts->lock);
 
 #if NVT_POWER_SOURCE_CUST_EN
-	if (((gesture_mode & 0x100) == 0) || ((gesture_mode & 0x0FF) == 0)) {
+	if (!allow_gesture) {
 		nvt_lcm_power_source_ctrl(data, 0); //disable vsp/vsn
 		pr_info("sleep suspend end disable vsp/vsn\n");
 	} else {
@@ -1759,7 +1800,7 @@ static int32_t nvt_ts_resume(struct device *dev)
 	nvt_bootloader_reset();
 	nvt_check_fw_reset_state(RESET_STATE_REK);
 
-	if (((gesture_mode & 0x100) == 0) || ((gesture_mode & 0x0FF) == 0))
+	if (!allow_gesture)
 		enable_irq(ts->client->irq);
 
 #if NVT_TOUCH_ESD_PROTECT
@@ -1861,6 +1902,7 @@ return:
 static void __exit nvt_driver_exit(void)
 {
 	i2c_del_driver(&nvt_i2c_driver);
+	destroy_gesture();
 
 	if (nvt_wq)
 		destroy_workqueue(nvt_wq);
