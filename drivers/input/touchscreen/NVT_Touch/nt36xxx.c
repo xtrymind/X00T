@@ -208,13 +208,13 @@ const uint16_t touch_key_array[TOUCH_KEY_NUM] = { KEY_BACK, KEY_HOME,
 #endif
 
 #if WAKEUP_GESTURE
-#define GESTURE_EVENT_C KEY_TP_GESTURE_C
-#define GESTURE_EVENT_E KEY_TP_GESTURE_E
-#define GESTURE_EVENT_S KEY_TP_GESTURE_S
-#define GESTURE_EVENT_V KEY_TP_GESTURE_V
-#define GESTURE_EVENT_W KEY_TP_GESTURE_W
-#define GESTURE_EVENT_Z KEY_TP_GESTURE_Z
-#define GESTURE_EVENT_SWIPE_UP 0x2f6
+#define GESTURE_EVENT_C 249
+#define GESTURE_EVENT_E 250
+#define GESTURE_EVENT_S 251
+#define GESTURE_EVENT_V 252
+#define GESTURE_EVENT_W 253
+#define GESTURE_EVENT_Z 254
+#define GESTURE_EVENT_SWIPE_UP 248
 #define GESTURE_EVENT_DOUBLE_CLICK 0x2f7
 
 const uint16_t gesture_key_array[] = {
@@ -223,8 +223,8 @@ const uint16_t gesture_key_array[] = {
 	GESTURE_EVENT_Z, KEY_M,
 	KEY_O,		 GESTURE_EVENT_E,
 	GESTURE_EVENT_S, GESTURE_EVENT_SWIPE_UP,
-	KEY_POWER,       KEY_POWER,
-	KEY_POWER,
+	KEY_WAKEUP,       KEY_WAKEUP,
+	KEY_WAKEUP,
 };
 #endif
 
@@ -235,7 +235,7 @@ static uint8_t bTouchIsAwake;
 
 static long gesture_mode;
 static int allow_gesture;
-static int screen_gesture;
+static int screen_gesture = 1;
 static struct kobject *gesture_kobject;
 
 static ssize_t gesture_show(struct kobject *kobj, struct kobj_attribute *attr,
@@ -273,7 +273,7 @@ static struct kobj_attribute screengesture_attribute = __ATTR(gesture_node, 0664
 							      screengesture_show,
 							      screengesture_store);
 
-int create_gesture_node() {
+int create_gesture_node(void) {
 	int error = 0, error2 = 0;
 
 	gesture_kobject = kobject_create_and_add("touchpanel", kernel_kobj);
@@ -293,7 +293,7 @@ int create_gesture_node() {
 	return error;
 }
 
-void destroy_gesture() {
+void destroy_gesture(void) {
 	kobject_put(gesture_kobject);
 }
 
@@ -332,10 +332,13 @@ static ssize_t nvt_gesture_mode_set_proc(struct file *filp,
 
 	ret = kstrtol(msg, 0, &gesture_mode);
 	if (!ret) {
-		if (gesture_mode == 0)
+		if (gesture_mode == 0) {
 			gesture_mode = 0;
-		else
+		} else {
+			screen_gesture = 1;
+			allow_gesture = 1;
 			gesture_mode = 0x1FF;
+		}
 	} else {
 		pr_err("set gesture mode failed\n");
 	}
@@ -954,8 +957,6 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id, uint8_t *data)
 		return;
 	}
 
-	pr_info("gesture_id = %d\n", gesture_id);
-
 	switch (gesture_id) {
 	case ID_GESTURE_WORD_C:
 		if (screen_gesture) {
@@ -1033,12 +1034,13 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id, uint8_t *data)
 
 	if (keycode > 0 ) {
 		if (is_double_tap == 1) {
-			input_report_key(ts->input_dev, KEY_POWER, 1);
+			input_report_key(ts->input_dev, KEY_WAKEUP, 1);
 			input_sync(ts->input_dev);
-			input_report_key(ts->input_dev, KEY_POWER, 0);
+			input_report_key(ts->input_dev, KEY_WAKEUP, 0);
 			input_sync(ts->input_dev);
 			is_double_tap = 0;
 		} else {
+			pr_info("gesture key code = %d\n", keycode);
 			input_report_key(ts->input_dev, keycode, 1);
 			input_sync(ts->input_dev);
 			input_report_key(ts->input_dev, keycode, 0);
