@@ -235,6 +235,7 @@ static uint8_t bTouchIsAwake;
 
 static long gesture_mode;
 static int allow_gesture;
+static int screen_gesture;
 static struct kobject *gesture_kobject;
 
 static ssize_t gesture_show(struct kobject *kobj, struct kobj_attribute *attr,
@@ -250,21 +251,44 @@ static ssize_t gesture_store(struct kobject *kobj, struct kobj_attribute *attr,
 	return count;
 }
 
-static struct kobj_attribute gesture_attribute = __ATTR(gesture_mode, 0664,
+static struct kobj_attribute gesture_attribute = __ATTR(dclicknode, 0664,
 							gesture_show,
 							gesture_store);
 
-int create_gesture_node() {
-	int error = 0;
-	pr_info("Gesture Node initialized successfully \n");
+static ssize_t screengesture_show(struct kobject *kobj,
+				  struct kobj_attribute *attr, char *buf)
+{
+	return sprintf(buf, "%d\n", screen_gesture);
+}
 
-	gesture_kobject = kobject_create_and_add("gesture_mode", kernel_kobj);
+static ssize_t screengesture_store(struct kobject *kobj,
+				   struct kobj_attribute *attr,
+				   const char *buf, size_t count)
+{
+	sscanf(buf, "%du", &screen_gesture);
+	return count;
+}
+
+static struct kobj_attribute screengesture_attribute = __ATTR(gesture_node, 0664,
+							      screengesture_show,
+							      screengesture_store);
+
+int create_gesture_node() {
+	int error = 0, error2 = 0;
+
+	gesture_kobject = kobject_create_and_add("touchpanel", kernel_kobj);
 	if(!gesture_kobject)
 		return -ENOMEM;
 
+	pr_info("Gesture Node initialized successfully\n");
+
 	error = sysfs_create_file(gesture_kobject, &gesture_attribute.attr);
 	if (error)
-		pr_err("failed to create the gesture_node file in /sys/kernel/gesture_mode \n");
+		pr_err("failed to create the gesture_node file in /sys/kernel/touchpanel\n");
+
+	error2 = sysfs_create_file(gesture_kobject, &screengesture_attribute.attr);
+	if (error2)
+		pr_err("failed to create the gesture_node file in /sys/kernel/touchpanel\n");
 
 	return error;
 }
@@ -934,32 +958,32 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id, uint8_t *data)
 
 	switch (gesture_id) {
 	case ID_GESTURE_WORD_C:
-		if (allow_gesture & MASK_GESTURE_C) {
+		if (screen_gesture) {
 			pr_info("Gesture : Word-C.\n");
 			keycode = gesture_key_array[0];
 		}
 		break;
 	case ID_GESTURE_WORD_W:
-		if (allow_gesture & MASK_GESTURE_W) {
+		if (screen_gesture) {
 			pr_info("Gesture : Word-W.\n");
 			keycode = gesture_key_array[1];
 		}
 		break;
 	case ID_GESTURE_WORD_V:
-		if (allow_gesture & MASK_GESTURE_V) {
+		if (screen_gesture) {
 			pr_info("Gesture : Word-V.\n");
 			keycode = gesture_key_array[2];
 		}
 		break;
 	case ID_GESTURE_DOUBLE_CLICK:
-		if (allow_gesture & MASK_GESTURE_DOUBLE_CLICK) {
+		if (screen_gesture) {
 			is_double_tap = 1;
 			pr_info("Gesture : Double Click.\n");
 			keycode = gesture_key_array[3];
 		}
 		break;
 	case ID_GESTURE_WORD_Z:
-		if (allow_gesture & MASK_GESTURE_Z) {
+		if (screen_gesture) {
 			pr_info("Gesture : Word-Z.\n");
 			keycode = gesture_key_array[4];
 		}
@@ -973,19 +997,19 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id, uint8_t *data)
 			keycode = gesture_key_array[6];
 			break; */
 	case ID_GESTURE_WORD_e:
-		if (allow_gesture & MASK_GESTURE_E) {
+		if (screen_gesture) {
 			pr_info("Gesture : Word-e.\n");
 			keycode = gesture_key_array[7];
 		}
 		break;
 	case ID_GESTURE_WORD_S:
-		if (allow_gesture & MASK_GESTURE_W) {
+		if (screen_gesture) {
 			pr_info("Gesture : Word-S.\n");
 			keycode = gesture_key_array[8];
 		}
 		break;
 	case ID_GESTURE_SLIDE_UP:
-		if (allow_gesture & MASK_GESTURE_SLIDE_UP) {
+		if (screen_gesture) {
 			pr_info("Gesture : Slide UP.\n");
 			keycode = gesture_key_array[9];
 		}
@@ -1717,7 +1741,7 @@ static int32_t nvt_ts_suspend(struct device *dev)
 #endif /* #if NVT_TOUCH_ESD_PROTECT */
 
 #if WAKEUP_GESTURE
-	if (!allow_gesture) {
+	if (!allow_gesture && !screen_gesture) {
 		disable_irq(ts->client->irq);
 
 		/* ---write i2c command to enter "deep sleep mode"--- */
@@ -1763,7 +1787,7 @@ static int32_t nvt_ts_suspend(struct device *dev)
 	mutex_unlock(&ts->lock);
 
 #if NVT_POWER_SOURCE_CUST_EN
-	if (!allow_gesture) {
+	if (!allow_gesture && !screen_gesture) {
 		nvt_lcm_power_source_ctrl(data, 0); //disable vsp/vsn
 		pr_info("sleep suspend end disable vsp/vsn\n");
 	} else {
@@ -1800,7 +1824,7 @@ static int32_t nvt_ts_resume(struct device *dev)
 	nvt_bootloader_reset();
 	nvt_check_fw_reset_state(RESET_STATE_REK);
 
-	if (!allow_gesture)
+	if (!allow_gesture && !screen_gesture)
 		enable_irq(ts->client->irq);
 
 #if NVT_TOUCH_ESD_PROTECT
