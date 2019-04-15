@@ -101,6 +101,8 @@ struct nvt_ts_data {
 	uint16_t addr;
 	int8_t phys[32];
 	struct notifier_block fb_notif;
+	struct work_struct resume_work;
+	struct work_struct suspend_work;
 	uint8_t fw_ver;
 	uint8_t x_num;
 	uint8_t y_num;
