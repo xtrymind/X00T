@@ -1520,7 +1520,7 @@ const struct seq_operations nvt_selftest_seq_ops = { .start = c_start,
 						     .stop = c_stop,
 						     .show = c_show_selftest };
 
-/* Huaqin add by yuexinghan for ITO test start */
+#if NVT_ITO_TEST
 /*****************ito test function*******************************/
 int32_t ito_selftest_open(void)
 {
@@ -1752,7 +1752,7 @@ int32_t ito_selftest_open(void)
 
 	return 0;
 }
-/* Huaqin add by yuexinghan for ITO test end */
+#endif
 
 /*******************************************************
 Description:
