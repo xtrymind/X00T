@@ -12,6 +12,11 @@ config TOUCHSCREEN_NT36xxx
 
 if TOUCHSCREEN_NT36xxx
 
+config TOUCHSCREEN_NT36xxx_EXT_PROC
+	bool "Novatek NT36xxx EXT PROC"
+	help
+	  Say Y here to disable NT36xxx EXT PROC
+
 config TOUCHSCREEN_NT36xxx_MP
 	bool "Novatek NT36xxx MP"
 	help
