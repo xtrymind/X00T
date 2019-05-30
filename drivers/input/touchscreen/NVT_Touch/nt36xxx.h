@@ -76,9 +76,14 @@ extern int32_t ito_selftest_open(void);
 
 /* ---Customerized func.--- */
 #define NVT_TOUCH_PROC 1
-#define NVT_TOUCH_EXT_PROC 1
 #define MT_PROTOCOL_B 1
 #define WAKEUP_GESTURE 1
+
+#ifdef CONFIG_TOUCHSCREEN_NT36xxx_EXT_PROC
+#define NVT_TOUCH_EXT_PROC 1
+#else
+#define NVT_TOUCH_EXT_PROC 0
+#endif
 
 #ifdef CONFIG_TOUCHSCREEN_NT36xxx_MP
 #define NVT_TOUCH_MP 1
