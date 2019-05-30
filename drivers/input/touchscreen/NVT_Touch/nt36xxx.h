@@ -77,9 +77,14 @@ extern int32_t ito_selftest_open(void);
 /* ---Customerized func.--- */
 #define NVT_TOUCH_PROC 1
 #define NVT_TOUCH_EXT_PROC 1
-#define NVT_TOUCH_MP 1
 #define MT_PROTOCOL_B 1
 #define WAKEUP_GESTURE 1
+
+#ifdef CONFIG_TOUCHSCREEN_NT36xxx_MP
+#define NVT_TOUCH_MP 1
+#else
+#define NVT_TOUCH_MP 0
+#endif
 
 #define BOOT_UPDATE_FIRMWARE 1
 #define DJ_BOOT_UPDATE_FIRMWARE_NAME "novatek_ts_fw_dj.bin"

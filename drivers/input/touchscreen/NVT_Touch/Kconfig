@@ -9,3 +9,12 @@ config TOUCHSCREEN_NT36xxx
 	  to your system.
 
 	  If unsure, say N.
+
+if TOUCHSCREEN_NT36xxx
+
+config TOUCHSCREEN_NT36xxx_MP
+	bool "Novatek NT36xxx MP"
+	help
+	  Say Y here to disable NT36xxx MP
+
+endif
