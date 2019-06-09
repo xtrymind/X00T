@@ -109,7 +109,7 @@ int commonfp_hw_reset(int ms)
 	mdelay(ms);
 #endif
 
-	pr_info("%s:  success,ret:%d\n", __func__, ret);
+	pr_debug("%s: hw reset success,ret:%d\n", __func__, ret);
 	return ret;
 exit:
 	pr_err("%s:  failed,ret:%d\n", __func__, ret);
@@ -143,12 +143,12 @@ int commonfp_request_irq(irq_handler_t handler, irq_handler_t thread_fn,
 void commonfp_free_irq(void *dev_id)
 {
 	if (irq_flag == 0) {
-		pr_info("%s: irq has been free\n", __func__);
+		pr_debug("%s: irq has been free\n", __func__);
 		return;
 	}
 	free_irq(fp_g.irq_num, dev_id);
 	irq_flag = 0;
-	pr_info("%s:  SUCCESS\n", __func__);
+	pr_debug("%s: success\n", __func__);
 }
 
 void commonfp_irq_enable(void)
