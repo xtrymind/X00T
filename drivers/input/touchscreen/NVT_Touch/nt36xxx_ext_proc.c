@@ -104,7 +104,7 @@ uint8_t nvt_get_fw_pipe(void)
 	buf[1] = 0x00;
 	CTP_I2C_READ(ts->client, I2C_FW_Address, buf, 2);
 
-	//NVT_LOG("FW pipe=%d, buf[1]=0x%02X\n", (buf[1]&0x01), buf[1]);
+	//pr_info("FW pipe=%d, buf[1]=0x%02X\n", (buf[1]&0x01), buf[1]);
 
 	return (buf[1] & 0x01);
 }
@@ -381,7 +381,7 @@ static int32_t nvt_fw_version_open(struct inode *inode, struct file *file)
 		return -ERESTARTSYS;
 	}
 
-	NVT_LOG("++\n");
+	pr_info("++\n");
 // Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
 #if NVT_TOUCH_ESD_PROTECT
 	nvt_esd_check_enable(false);
@@ -395,7 +395,7 @@ static int32_t nvt_fw_version_open(struct inode *inode, struct file *file)
 
 	mutex_unlock(&ts->lock);
 
-	NVT_LOG("--\n");
+	pr_info("--\n");
 
 	return seq_open(file, &nvt_fw_version_seq_ops);
 }
@@ -421,7 +421,7 @@ static int32_t nvt_baseline_open(struct inode *inode, struct file *file)
 		return -ERESTARTSYS;
 	}
 
-	NVT_LOG("++\n");
+	pr_info("++\n");
 // Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
 #if NVT_TOUCH_ESD_PROTECT
 	nvt_esd_check_enable(false);
@@ -459,7 +459,7 @@ static int32_t nvt_baseline_open(struct inode *inode, struct file *file)
 
 	mutex_unlock(&ts->lock);
 
-	NVT_LOG("--\n");
+	pr_info("--\n");
 
 	return seq_open(file, &nvt_seq_ops);
 }
@@ -485,7 +485,7 @@ static int32_t nvt_raw_open(struct inode *inode, struct file *file)
 		return -ERESTARTSYS;
 	}
 
-	NVT_LOG("++\n");
+	pr_info("++\n");
 // Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
 #if NVT_TOUCH_ESD_PROTECT
 	nvt_esd_check_enable(false);
@@ -533,7 +533,7 @@ static int32_t nvt_raw_open(struct inode *inode, struct file *file)
 
 	mutex_unlock(&ts->lock);
 
-	NVT_LOG("--\n");
+	pr_info("--\n");
 
 	return seq_open(file, &nvt_seq_ops);
 }
@@ -559,7 +559,7 @@ static int32_t nvt_diff_open(struct inode *inode, struct file *file)
 		return -ERESTARTSYS;
 	}
 
-	NVT_LOG("++\n");
+	pr_info("++\n");
 // Huaqin add for esd check function. by zhengwu.lu. at 2018/2/28  start
 #if NVT_TOUCH_ESD_PROTECT
 	nvt_esd_check_enable(false);
@@ -607,7 +607,7 @@ static int32_t nvt_diff_open(struct inode *inode, struct file *file)
 
 	mutex_unlock(&ts->lock);
 
-	NVT_LOG("--\n");
+	pr_info("--\n");
 
 	return seq_open(file, &nvt_seq_ops);
 }
@@ -633,35 +633,35 @@ int32_t nvt_extra_proc_init(void)
 	NVT_proc_fw_version_entry =
 		proc_create(NVT_FW_VERSION, 0444, NULL, &nvt_fw_version_fops);
 	if (NVT_proc_fw_version_entry == NULL) {
-		NVT_ERR("create proc/nvt_fw_version Failed!\n");
+		pr_err("create proc/nvt_fw_version Failed!\n");
 		return -ENOMEM;
 	} else {
-		NVT_LOG("create proc/nvt_fw_version Succeeded!\n");
+		pr_info("create proc/nvt_fw_version Succeeded!\n");
 	}
 
 	NVT_proc_baseline_entry =
 		proc_create(NVT_BASELINE, 0444, NULL, &nvt_baseline_fops);
 	if (NVT_proc_baseline_entry == NULL) {
-		NVT_ERR("create proc/nvt_baseline Failed!\n");
+		pr_err("create proc/nvt_baseline Failed!\n");
 		return -ENOMEM;
 	} else {
-		NVT_LOG("create proc/nvt_baseline Succeeded!\n");
+		pr_info("create proc/nvt_baseline Succeeded!\n");
 	}
 
 	NVT_proc_raw_entry = proc_create(NVT_RAW, 0444, NULL, &nvt_raw_fops);
 	if (NVT_proc_raw_entry == NULL) {
-		NVT_ERR("create proc/nvt_raw Failed!\n");
+		pr_err("create proc/nvt_raw Failed!\n");
 		return -ENOMEM;
 	} else {
-		NVT_LOG("create proc/nvt_raw Succeeded!\n");
+		pr_info("create proc/nvt_raw Succeeded!\n");
 	}
 
 	NVT_proc_diff_entry = proc_create(NVT_DIFF, 0444, NULL, &nvt_diff_fops);
 	if (NVT_proc_diff_entry == NULL) {
-		NVT_ERR("create proc/nvt_diff Failed!\n");
+		pr_err("create proc/nvt_diff Failed!\n");
 		return -ENOMEM;
 	} else {
-		NVT_LOG("create proc/nvt_diff Succeeded!\n");
+		pr_info("create proc/nvt_diff Succeeded!\n");
 	}
 
 	return 0;

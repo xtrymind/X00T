@@ -18,6 +18,9 @@
 #ifndef _LINUX_NVT_TOUCH_H
 #define _LINUX_NVT_TOUCH_H
 
+#undef pr_fmt
+#define pr_fmt(fmt)	"NVT: %s: " fmt, __func__
+
 #include <linux/platform_device.h>
 #include <linux/device.h>
 #include <linux/i2c.h>
@@ -25,7 +28,6 @@
 #include <linux/regulator/consumer.h>
 #include <linux/debugfs.h>
 
-#define NVT_DEBUG 1
 #define NVT_ITO_TEST 0
 
 /* ---GPIO number--- */
@@ -47,16 +49,6 @@
 #define I2C_BLDR_Address 0x01
 #define I2C_FW_Address 0x01
 #define I2C_HW_Address 0x62
-
-#if NVT_DEBUG
-#define NVT_LOG(fmt, args...)                                                  \
-	pr_err("[%s] %s %d: " fmt, NVT_I2C_NAME, __func__, __LINE__, ##args)
-#else
-#define NVT_LOG(fmt, args...)                                                  \
-	pr_info("[%s] %s %d: " fmt, NVT_I2C_NAME, __func__, __LINE__, ##args)
-#endif
-#define NVT_ERR(fmt, args...)                                                  \
-	pr_err("[%s] %s %d: " fmt, NVT_I2C_NAME, __func__, __LINE__, ##args)
 
 /* ---Input device info.--- */
 #define NVT_TS_NAME "NVTCapacitiveTouchScreen"
