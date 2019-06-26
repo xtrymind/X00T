@@ -56,6 +56,7 @@ struct cdfinger_key_map {
 };
 
 #define CDF_RESET_US 1000
+#define HOLD_TIME 1000
 
 #define CDFINGER_IOCTL_MAGIC_NO 0xFB
 #define CDFINGER_INIT _IOW(CDFINGER_IOCTL_MAGIC_NO, 0, uint8_t)
@@ -106,7 +107,6 @@ struct cdfinger_key_map {
 static int isInKeyMode;
 static int irq_flag;
 static int screen_status = 1;
-static char wake_flag;
 
 struct cdfingerfp_data {
 	struct platform_device *cdfinger_dev;
@@ -288,20 +288,7 @@ static int cdfinger_release(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static void cdfinger_wake_lock(struct cdfingerfp_data *pdata, int arg)
-{
-	if (arg) {
-		if (wake_flag == 0) {
-			__pm_stay_awake(&pdata->cdfinger_lock);
-			wake_flag = 1;
-		}
-	} else {
-		if (wake_flag == 1) {
-			__pm_relax(&pdata->cdfinger_lock);
-			wake_flag = 0;
-		}
-	}
-}
+
 static void cdfinger_async_report(void)
 {
 	struct cdfingerfp_data *cdfingerfp = g_cdfingerfp_data;
@@ -314,7 +301,7 @@ static irqreturn_t cdfinger_eint_handler(int irq, void *dev_id)
 	struct cdfingerfp_data *pdata = g_cdfingerfp_data;
 
 	if (pdata->irq_enable_status == 1) {
-		cdfinger_wake_lock(pdata, 1);
+		__pm_wakeup_event(&pdata->cdfinger_lock, HOLD_TIME);
 		cdfinger_async_report();
 	}
 	return IRQ_HANDLED;
@@ -431,7 +418,11 @@ static long cdfinger_ioctl(struct file *filp, unsigned int cmd,
 		err = cdfinger_eint_gpio_init(cdfinger);
 		break;
 	case CDFINGER_WAKE_LOCK:
-		cdfinger_wake_lock(cdfinger, arg);
+		if (arg)
+			__pm_wakeup_event(&cdfinger->cdfinger_lock, HOLD_TIME);
+		else
+			__pm_relax(&cdfinger->cdfinger_lock);
+
 		break;
 	case CDFINGER_RELEASE_DEVICE:
 		irq_flag = 0;
