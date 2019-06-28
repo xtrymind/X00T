@@ -27,6 +27,7 @@
 #include <linux/input.h>
 #include <linux/regulator/consumer.h>
 #include <linux/debugfs.h>
+#include "nt36xxx_mem_map.h"
 
 #define NVT_ITO_TEST 0
 
@@ -91,32 +92,6 @@ extern int32_t ito_selftest_open(void);
 /* ---ESD Protect.--- */
 #define NVT_TOUCH_ESD_PROTECT 1
 #define NVT_TOUCH_ESD_CHECK_PERIOD 1500 /* ms */
-
-struct nvt_ts_mem_map {
-	uint32_t EVENT_BUF_ADDR;
-	uint32_t RAW_PIPE0_ADDR;
-	uint32_t RAW_PIPE0_Q_ADDR;
-	uint32_t RAW_PIPE1_ADDR;
-	uint32_t RAW_PIPE1_Q_ADDR;
-	uint32_t BASELINE_ADDR;
-	uint32_t BASELINE_Q_ADDR;
-	uint32_t BASELINE_BTN_ADDR;
-	uint32_t BASELINE_BTN_Q_ADDR;
-	uint32_t DIFF_PIPE0_ADDR;
-	uint32_t DIFF_PIPE0_Q_ADDR;
-	uint32_t DIFF_PIPE1_ADDR;
-	uint32_t DIFF_PIPE1_Q_ADDR;
-	uint32_t RAW_BTN_PIPE0_ADDR;
-	uint32_t RAW_BTN_PIPE0_Q_ADDR;
-	uint32_t RAW_BTN_PIPE1_ADDR;
-	uint32_t RAW_BTN_PIPE1_Q_ADDR;
-	uint32_t DIFF_BTN_PIPE0_ADDR;
-	uint32_t DIFF_BTN_PIPE0_Q_ADDR;
-	uint32_t DIFF_BTN_PIPE1_ADDR;
-	uint32_t DIFF_BTN_PIPE1_Q_ADDR;
-	uint32_t READ_FLASH_CHECKSUM_ADDR;
-	uint32_t RW_FLASH_DATA_ADDR;
-};
 
 struct nvt_ts_data {
 	struct i2c_client *client;
