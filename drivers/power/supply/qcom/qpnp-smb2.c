@@ -2304,13 +2304,13 @@ static void smb2_create_debugfs(struct smb2 *chip)
 int charger_limit_enable_flag;
 int charger_limit_value;
 static char charger_limit[8] = "0";
-static struct proc_dir_entry *limit_enbale_entry;
+static struct proc_dir_entry *limit_enable_entry;
 static struct proc_dir_entry *limit_entry;
 extern int asus_get_prop_batt_capacity(struct smb_charger *chg);
 #define CHARGER_LIMIT_EN_PROC_FILE	"driver/charger_limit_enable"
 #define CHARGER_LIMIT_PROC_FILE	"driver/charger_limit"
 
-ssize_t charger_limit_enbale_read_proc(struct file *file, char __user *page,
+ssize_t charger_limit_enable_read_proc(struct file *file, char __user *page,
 				       size_t size, loff_t *ppos)
 {
 	char read_data[8] = {0};
@@ -2332,7 +2332,7 @@ ssize_t charger_limit_enbale_read_proc(struct file *file, char __user *page,
 	return len;
 }
 
-static ssize_t charger_limit_enbale_write_proc(struct file *file,
+static ssize_t charger_limit_enable_write_proc(struct file *file,
 					       const char __user *buff,
 					       size_t size, loff_t *ppos)
 {
@@ -2362,7 +2362,7 @@ static ssize_t charger_limit_enbale_write_proc(struct file *file,
 			if (online)
 				power_supply_changed(smbchg_dev->batt_psy);
 		}
-		pr_debug("%s: write enbale 1 soc = %d, limit-value= %d\n",
+		pr_debug("%s: write enable 1 soc = %d, limit-value= %d\n",
 			 __func__, soc, charger_limit_value);
 	} else {
 		charger_limit_enable_flag = 0;
@@ -2370,7 +2370,7 @@ static ssize_t charger_limit_enbale_write_proc(struct file *file,
 					 CHARGING_ENABLE_CMD_BIT, 0);
 		if (online)
 			power_supply_changed(smbchg_dev->batt_psy);
-		pr_debug("%s: write enbale 0,no limit ,charging\n", __func__);
+		pr_debug("%s: write enable 0,no limit ,charging\n", __func__);
 	}
 	pr_debug("%s: charger_limit_enable_flag = %d\n", __func__,
 		 charger_limit_enable_flag);
@@ -2378,9 +2378,9 @@ static ssize_t charger_limit_enbale_write_proc(struct file *file,
 	return size;
 }
 
-static const struct file_operations charger_limit_enbale_proc_ops = {
-	.read = charger_limit_enbale_read_proc,
-	.write = charger_limit_enbale_write_proc,
+static const struct file_operations charger_limit_enable_proc_ops = {
+	.read = charger_limit_enable_read_proc,
+	.write = charger_limit_enable_write_proc,
 };
 
 ssize_t charger_limit_read_proc(struct file *file, char __user *page,
@@ -2467,9 +2467,9 @@ static int init_proc_charger_limit(void)
 {
 	int ret = 0;
 
-	limit_enbale_entry = proc_create(CHARGER_LIMIT_EN_PROC_FILE, 0644,
-					 NULL, &charger_limit_enbale_proc_ops);
-	if (limit_enbale_entry == NULL) {
+	limit_enable_entry = proc_create(CHARGER_LIMIT_EN_PROC_FILE, 0644,
+					 NULL, &charger_limit_enable_proc_ops);
+	if (limit_enable_entry == NULL) {
 		pr_err("create_proc entry %s failed\n",
 		       CHARGER_LIMIT_EN_PROC_FILE);
 		return -ENOMEM;
@@ -2492,7 +2492,7 @@ static int init_proc_charger_limit(void)
 
 static void remove_proc_charger_limit(void)
 {
-	proc_remove(limit_enbale_entry);
+	proc_remove(limit_enable_entry);
 	proc_remove(limit_entry);
 }
 
