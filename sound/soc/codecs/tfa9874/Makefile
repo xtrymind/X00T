@@ -30,6 +30,7 @@ EXTRA_CFLAGS += -DDEBUG
 
 EXTRA_CFLAGS += -I$(src)/inc
 EXTRA_CFLAGS += -Werror
+EXTRA_CFLAGS += -Wno-enum-conversion
 
 obj-$(CONFIG_SND_SOC_TFA9874) := snd-soc-tfa9874.o
 
