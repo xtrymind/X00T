@@ -100,19 +100,8 @@ struct cdfinger_key_map {
 
 static int isInKeyMode; // key mode
 static int screen_status = 1; // screen on
-static u8 cdfinger_debug = 0x01;
 static int isInit;
 static char wake_flag;
-#define CDFINGER_DBG(fmt, args...) \
-	do{ \
-		if(cdfinger_debug & 0x01) \
-		printk( "[DBG][cdfinger]:%5d: <%s>" fmt, __LINE__,__func__,##args ); \
-	}while(0)
-
-#define CDFINGER_ERR(fmt, args...) \
-	do{ \
-		printk( "[DBG][cdfinger]:%5d: <%s>" fmt, __LINE__,__func__,##args ); \
-	}while(0)
 
 #define FP_BOOST_MS 500
 #define FP_BOOST_INTERVAL (500 * USEC_PER_MSEC)
@@ -202,19 +191,20 @@ static int cdfinger_init_gpio(struct cdfingerfp_data *cdfinger)
 {
 	int err = 0;
 
-	CDFINGER_DBG("enter\n");
+	pr_info("%s: enter\n", __func__);
+
 	if (gpio_is_valid(cdfinger->pwr_num)) {
 		err = gpio_request(cdfinger->pwr_num, "cdfinger-pwr");
 		if (err) {
 			gpio_free(cdfinger->pwr_num);
 			err = gpio_request(cdfinger->pwr_num, "cdfinger-pwr");
 			if (err) {
-				CDFINGER_DBG("Could not request pwr gpio.\n");
+				pr_err("%s: Could not request pwr gpio\n", __func__);
 				return err;
 			}
 		}
 	} else {
-		CDFINGER_DBG("not valid pwr gpio\n");
+		pr_err("%s: not valid pwr gpioo\n", __func__);
 		return -EIO;
 	}
 
@@ -224,14 +214,14 @@ static int cdfinger_init_gpio(struct cdfingerfp_data *cdfinger)
 			gpio_free(cdfinger->reset_num);
 			err = gpio_request(cdfinger->reset_num, "cdfinger-reset");
 			if (err) {
-				CDFINGER_ERR("Could not request reset gpio.\n");
+				pr_err("%s: Could not request reset gpio.\n", __func__);
 				gpio_free(cdfinger->pwr_num);
 				return err;
 			}
 		}
 		gpio_direction_output(cdfinger->reset_num, 1);
 	} else {
-		CDFINGER_ERR("not valid reset gpio\n");
+		pr_err("%s: not valid reset gpio\n", __func__);
 		gpio_free(cdfinger->pwr_num);
 		return -EIO;
 	}
@@ -242,7 +232,7 @@ static int cdfinger_init_gpio(struct cdfingerfp_data *cdfinger)
 			gpio_free(cdfinger->irq_num);
 			err = gpio_request(cdfinger->irq_num, "cdfinger-irq");
 			if (err) {
-				CDFINGER_ERR("Could not request irq gpio.\n");
+				pr_err("%s: Could not request irq gpio.\n", __func__);
 				gpio_free(cdfinger->reset_num);
 				gpio_free(cdfinger->pwr_num);
 				return err;
@@ -250,7 +240,7 @@ static int cdfinger_init_gpio(struct cdfingerfp_data *cdfinger)
 		}
 		gpio_direction_input(cdfinger->irq_num);
 	} else {
-		CDFINGER_ERR(KERN_ERR "not valid irq gpio\n");
+		pr_err("%s: not valid irq gpio\n", __func__);
 		gpio_free(cdfinger->reset_num);
 		gpio_free(cdfinger->pwr_num);
 		return -EIO;
@@ -263,7 +253,7 @@ static int cdfinger_free_gpio(struct cdfingerfp_data *cdfinger)
 {
 	int err = 0;
 
-	CDFINGER_DBG("enter\n");
+	pr_info("%s: enter\n", __func__);
 
 	if (gpio_is_valid(cdfinger->irq_num)) {
 		gpio_free(cdfinger->irq_num);
@@ -293,7 +283,7 @@ static int cdfinger_parse_dts(struct device *dev, struct cdfingerfp_data *cdfing
 {
 	int err = 0;
 
-	CDFINGER_DBG("enter\n");
+	pr_info("%s: enter\n", __func__);
 
 	cdfinger->pwr_num = of_get_named_gpio(dev->of_node, "cdfinger,gpio_vdd", 0);
 	cdfinger->reset_num = of_get_named_gpio(dev->of_node, "cdfinger,reset_gpio", 0);
@@ -320,7 +310,7 @@ static int cdfinger_power_off(struct cdfingerfp_data *pdata)
 
 static int cdfinger_open(struct inode *inode, struct file *file)
 {
-	CDFINGER_DBG("enter\n");
+	pr_info("%s: enter\n", __func__);
 
 	file->private_data = g_cdfingerfp_data;
 	return 0;
@@ -336,7 +326,7 @@ static int cdfinger_release(struct inode *inode, struct file *file)
 {
 	struct cdfingerfp_data *cdfingerfp = file->private_data;
 
-	CDFINGER_DBG("enter\n");
+	pr_info("%s: enter\n", __func__);
 
 	if (cdfingerfp == NULL)
 		return -EIO;
@@ -382,7 +372,7 @@ static int cdfinger_init_irq(struct cdfingerfp_data *pdata)
 {
 	int error = 0;
 
-	CDFINGER_DBG("enter\n");
+	pr_info("%s: enter\n", __func__);
 
 	if (isInit == 1)
 		return 0;
@@ -392,7 +382,7 @@ static int cdfinger_init_irq(struct cdfingerfp_data *pdata)
 				     NULL, IRQF_TRIGGER_RISING,
 				     "cdfinger_eint", (void *)pdata);
 	if (error < 0) {
-		CDFINGER_ERR("irq init err\n");
+		pr_err("%s: irq init error=%d\n", __func__, error);
 		return error;
 	}
 	enable_irq_wake(gpio_to_irq(pdata->irq_num));
@@ -423,7 +413,7 @@ static void cdfinger_disable_irq(struct cdfingerfp_data *pdata)
 static int cdfinger_irq_controller(struct cdfingerfp_data *pdata, int Onoff)
 {
 	if (isInit == 0) {
-		CDFINGER_ERR("irq  not request!!!\n");
+		pr_err("%s: irq not requested!\n", __func__);
 		return -1;
 	}
 
@@ -436,7 +426,7 @@ static int cdfinger_irq_controller(struct cdfingerfp_data *pdata, int Onoff)
 		return 0;
 	}
 
-	CDFINGER_ERR("irq  status parameter err %d !!!\n", Onoff);
+	pr_err("%s: irq status parameter err=%d!\n", __func__, Onoff);
 	return -1;
 }
 
@@ -447,7 +437,7 @@ static int cdfinger_report_key(struct cdfingerfp_data *cdfinger,
 	key_report_t report;
 	if (copy_from_user(&report, (key_report_t *)arg,
 			   sizeof(key_report_t))) {
-		CDFINGER_ERR("%s err\n", __func__);
+		pr_err("%s: err\n", __func__);
 		return -1;
 	}
 
@@ -600,12 +590,12 @@ static int cdfinger_probe(struct platform_device *pdev)
 
 	status = cdfinger_parse_dts(&cdfingerdev->cdfinger_dev->dev, cdfingerdev);
 	if (status) {
-		CDFINGER_ERR("cdfinger parse err %d\n", status);
+		pr_err("%s: cdfinger parse dts err=%d\n", __func__, status);
 		return -1;
 	}
 	status = misc_register(&st_cdfinger_dev);
 	if (status) {
-		CDFINGER_ERR("cdfinger misc register err%d\n", status);
+		pr_err("%s: cdfinger misc register err=%d\n", __func__, status);
 		return -1;
 	}
 
@@ -616,7 +606,7 @@ static int cdfinger_probe(struct platform_device *pdev)
 
 	cdfingerdev->cdfinger_input = input_allocate_device();
 	if (!cdfingerdev->cdfinger_input) {
-		CDFINGER_ERR("crate cdfinger_input faile!\n");
+		pr_err("%s: create cdfinger_input failed!\n", __func__);
 		goto unregister_dev;
 	}
 
@@ -672,13 +662,13 @@ static struct platform_driver cdfinger_driver = {
 
 static int __init cdfinger_fp_init(void)
 {
-	pr_info("cdfinger fp init\n");
+	pr_info("%s\n", __func__);
 	return platform_driver_register(&cdfinger_driver);
 }
 
 static void __exit cdfinger_fp_exit(void)
 {
-	pr_info("cdfinger fp exit\n");
+	pr_info("%s\n", __func__);
 	platform_driver_unregister(&cdfinger_driver);
 }
 
