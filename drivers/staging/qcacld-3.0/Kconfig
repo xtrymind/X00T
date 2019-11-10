@@ -17,12 +17,4 @@ config QCA_CLD_WLAN_PROFILE
 
 	  Profiles are located at drivers/staging/qcacld-3.0/configs.
 
-config QCACLD_FEATURE_METERING
-	bool "Enable feature metering"
-	default n
-
-config WLAN_FEATURE_SAE
-	bool "Enable SAE"
-	default n
-
 endif # QCA_CLD_WLAN
