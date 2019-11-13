@@ -1040,7 +1040,7 @@ static void stk_ps_report(struct stk3x1x_data *ps_data, int nf)
 	input_event(ps_data->ps_input_dev, EV_SYN, SYN_REPORT, 0);*/
 #endif
 	input_sync(ps_data->ps_input_dev);
-	__pm_wakeup_event(&ps_data->ps_wakelock, 1500);
+	__pm_wakeup_event(&ps_data->ps_wakelock, 300);
 }
 
 static void stk_als_report(struct stk3x1x_data *ps_data, int als)
