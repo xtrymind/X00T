@@ -217,7 +217,6 @@ void nvt_irq_disable(void)
 		disable_irq(ts->client->irq);
 }
 
-extern int tp_status_fun(void);
 static const struct nvt_ts_mem_map NT36772_memory_map = {
 	.EVENT_BUF_ADDR = 0x11E00,
 	.RAW_PIPE0_ADDR = 0x10000,
@@ -1271,9 +1270,6 @@ static void nvt_ts_work_func(struct work_struct *work)
 		goto XFER_ERROR;
 	}
 #endif
-	ret = tp_status_fun();
-	if (ret)
-		goto XFER_ERROR;
 
 #if WAKEUP_GESTURE
 	if (bTouchIsAwake == 0) {

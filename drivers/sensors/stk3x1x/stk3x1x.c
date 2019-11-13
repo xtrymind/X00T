@@ -211,13 +211,6 @@
 #endif
 /*Huaqin modify for psensor near/far threshold by chenyijun5 at 2018/02/27 end*/
 
-/* Huaqin add for ZQL1650-1072 by zhuqiang at 2018/04/23 start*/
-bool ps_status_flag;
-bool call_status_flag;
-module_param(call_status_flag, bool, 0660);
-MODULE_PARM_DESC(call_status_flag, "Judgment call status");
-/* Huaqin add for ZQL1650-1072 by zhuqiang at 2018/04/23 end*/
-
 #ifdef STK_TUNE1
 #define STK_FIN_THD (2000)
 #define STK_ALS_NEAR (40)
@@ -1254,10 +1247,6 @@ static int32_t stk3x1x_enable_ps(struct stk3x1x_data *ps_data, uint8_t enable,
 	uint32_t reading;
 	int32_t near_far_state;
 
-	/* Huaqin add for ZQL1650-1072 by zhuqiang at 2018/04/23 start*/
-	if (!enable)
-		ps_status_flag = 0;
-/* Huaqin add for ZQL1650-1072 by zhuqiang at 2018/04/23 end*/
 #ifdef STK_QUALCOMM_POWER_CTRL
 	if (enable) {
 		ret = stk3x1x_device_ctl(ps_data, enable);
@@ -3838,25 +3827,6 @@ static void stk_ps_int_handle_int_mode_2_3(struct stk3x1x_data *ps_data)
 }
 #endif
 
-/* Huaqin add for ZQL1650-1072 by zhuqiang at 2018/04/23 start*/
-int tp_status_fun(void)
-{
-	return (call_status_flag & ps_status_flag);
-}
-EXPORT_SYMBOL(tp_status_fun);
-static void stk_ps_int_handle(struct stk3x1x_data *ps_data, uint32_t ps_reading,
-			      int32_t nf_state)
-{
-	if (!nf_state)
-		ps_status_flag = 1;
-	else
-		ps_status_flag = 0;
-	stk_ps_report(ps_data, nf_state);
-	pr_debug("%s: ps input event=%d, ps code=%d\n", __func__,
-	       nf_state, ps_reading);
-}
-/* Huaqin add ZQL1650-1072 by zhuqiang at 2018/04/23 end*/
-
 #endif // #ifdef STK_TUNE1
 
 static int stk_als_int_handle(struct stk3x1x_data *ps_data,
@@ -4009,7 +3979,6 @@ static void stk_work_func(struct work_struct *work)
 #endif
 		/*Huaqin add for ps INT mode by chenyijun5 at 2018/03/29 end*/
 
-		stk_ps_int_handle(ps_data, reading, near_far_state);
 #endif
 	}
 
