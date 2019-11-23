@@ -5795,7 +5795,7 @@ static int fg_gen3_probe(struct platform_device *pdev)
 	g_fg = chip;
 	INIT_DELAYED_WORK(&battery_health_work, battery_health_worker);
 	battery_health_data_reset();
-	schedule_delayed_work(&battery_health_work, msecs_to_jiffies(40000));
+	schedule_delayed_work(&battery_health_work, msecs_to_jiffies(50000));
 	INIT_WORK(&chip->esr_filter_work, esr_filter_work);
 	alarm_init(&chip->esr_filter_alarm, ALARM_BOOTTIME,
 			fg_esr_filter_alarm_cb);
