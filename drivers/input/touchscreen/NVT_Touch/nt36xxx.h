@@ -24,16 +24,13 @@
 #include <linux/input.h>
 #include <linux/regulator/consumer.h>
 #include <linux/debugfs.h>
-#ifdef CONFIG_HAS_EARLYSUSPEND
-#include <linux/earlysuspend.h>
-#endif
 
 #define NVT_DEBUG 1
 
-//---GPIO number---
+/* ---GPIO number--- */
 #define NVTTOUCH_INT_PIN 943
-
 #define NVT_POWER_SOURCE_CUST_EN 1
+
 #if NVT_POWER_SOURCE_CUST_EN
 #define LCM_LAB_MIN_UV 6000000
 #define LCM_LAB_MAX_UV 6000000
@@ -41,10 +38,10 @@
 #define LCM_IBB_MAX_UV 6000000
 #endif
 
-//---INT trigger mode---
+/* ---INT trigger mode--- */
 #define INT_TRIGGER_TYPE IRQ_TYPE_EDGE_RISING
 
-//---I2C driver info.---
+/* ---I2C driver info.--- */
 #define NVT_I2C_NAME "NVT-ts"
 #define I2C_BLDR_Address 0x01
 #define I2C_FW_Address 0x01
@@ -60,36 +57,33 @@
 #define NVT_ERR(fmt, args...)                                                  \
 	pr_err("[%s] %s %d: " fmt, NVT_I2C_NAME, __func__, __LINE__, ##args)
 
-//---Input device info.---
+/* ---Input device info.--- */
 #define NVT_TS_NAME "NVTCapacitiveTouchScreen"
-
 #define HWINFO_NAME "tp_wake_switch"
-//-------------add ito test
+
+/* ---add ito test --- */
 extern int32_t ito_selftest_open(void);
 
-//---Touch info.---
+/* ---Touch info.--- */
+#define TOUCH_DEFAULT_MAX_WIDTH 1080
+#define TOUCH_DEFAULT_MAX_HEIGHT 2160
 #define TOUCH_MAX_FINGER_NUM 10
 #define TOUCH_KEY_NUM 0
-#if TOUCH_KEY_NUM > 0
-extern const uint16_t touch_key_array[TOUCH_KEY_NUM];
-#endif
 #define TOUCH_FORCE_NUM 1000
 
-//---Customerized func.---
+/* ---Customerized func.--- */
 #define NVT_TOUCH_PROC 1
 #define NVT_TOUCH_EXT_PROC 1
 #define NVT_TOUCH_MP 1
 #define MT_PROTOCOL_B 1
 #define WAKEUP_GESTURE 1
-#if WAKEUP_GESTURE
-extern const uint16_t gesture_key_array[];
-#endif
 
 #define BOOT_UPDATE_FIRMWARE 1
 #define DJ_BOOT_UPDATE_FIRMWARE_NAME "novatek_ts_fw_dj.bin"
 #define TXD_BOOT_UPDATE_FIRMWARE_NAME "novatek_ts_fw_txd.bin"
+/* #define BOOT_UPDATE_FIRMWARE_NAME "novatek_ts_fw.bin" */
 
-//---ESD Protect.---
+/* ---ESD Protect.--- */
 #define NVT_TOUCH_ESD_PROTECT 1
 #define NVT_TOUCH_ESD_CHECK_PERIOD 1500 /* ms */
 
@@ -126,11 +120,7 @@ struct nvt_ts_data {
 	struct delayed_work nvt_fwu_work;
 	uint16_t addr;
 	int8_t phys[32];
-#if defined(CONFIG_FB)
 	struct notifier_block fb_notif;
-#elif defined(CONFIG_HAS_EARLYSUSPEND)
-	struct early_suspend early_suspend;
-#endif
 	uint8_t fw_ver;
 	uint8_t x_num;
 	uint8_t y_num;
@@ -163,10 +153,10 @@ struct nvt_flash_data {
 #endif
 
 typedef enum {
-	RESET_STATE_INIT = 0xA0, // IC reset
-	RESET_STATE_REK, // ReK baseline
-	RESET_STATE_REK_FINISH, // baseline is ready
-	RESET_STATE_NORMAL_RUN, // normal run
+	RESET_STATE_INIT = 0xA0, /* IC reset */
+	RESET_STATE_REK, /* ReK baseline */
+	RESET_STATE_REK_FINISH, /* baseline is ready */
+	RESET_STATE_NORMAL_RUN, /* normal run */
 	RESET_STATE_MAX = 0xAF
 } RST_COMPLETE_STATE;
 
@@ -178,11 +168,17 @@ typedef enum {
 	EVENT_MAP_PROJECTID = 0x9A,
 } I2C_EVENT_MAP;
 
-//---extern structures---
+/* ---extern structures--- */
 extern struct nvt_ts_data *ts;
 extern int nvt_TestResultLen;
+#if TOUCH_KEY_NUM > 0
+extern const uint16_t touch_key_array[TOUCH_KEY_NUM];
+#endif
+#if WAKEUP_GESTURE
+extern const uint16_t gesture_key_array[];
+#endif
 
-//---extern functions---
+/* ---extern functions--- */
 extern int32_t CTP_I2C_READ(struct i2c_client *client, uint16_t address,
 			    uint8_t *buf, uint16_t len);
 extern int32_t CTP_I2C_WRITE(struct i2c_client *client, uint16_t address,
@@ -196,6 +192,6 @@ extern int32_t nvt_check_fw_status(void);
 
 #if NVT_TOUCH_ESD_PROTECT
 extern void nvt_esd_check_enable(uint8_t enable);
-#endif
+#endif /* #if NVT_TOUCH_ESD_PROTECT */
 
 #endif /* _LINUX_NVT_TOUCH_H */
