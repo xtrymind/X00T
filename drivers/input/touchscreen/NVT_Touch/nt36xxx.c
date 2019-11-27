@@ -234,20 +234,20 @@ static uint8_t bTouchIsAwake;
 #define NVT_GESTURE_MODE "tpd_gesture"
 
 static long gesture_mode;
-static int allow_gesture;
+static int allow_dt2w;
 static int screen_gesture = 1;
 static struct kobject *gesture_kobject;
 
 static ssize_t gesture_show(struct kobject *kobj, struct kobj_attribute *attr,
 			    char *buf)
 {
-	return sprintf(buf, "%d\n", allow_gesture);
+	return sprintf(buf, "%d\n", allow_dt2w);
 }
 
 static ssize_t gesture_store(struct kobject *kobj, struct kobj_attribute *attr,
 			     const char *buf, size_t count)
 {
-	sscanf(buf, "%du", &allow_gesture);
+	sscanf(buf, "%du", &allow_dt2w);
 	return count;
 }
 
@@ -336,7 +336,7 @@ static ssize_t nvt_gesture_mode_set_proc(struct file *filp,
 			gesture_mode = 0;
 		} else {
 			screen_gesture = 1;
-			allow_gesture = 1;
+			allow_dt2w = 1;
 			gesture_mode = 0x1FF;
 		}
 	} else {
@@ -977,7 +977,7 @@ void nvt_ts_wakeup_gesture_report(uint8_t gesture_id, uint8_t *data)
 		}
 		break;
 	case ID_GESTURE_DOUBLE_CLICK:
-		if (screen_gesture) {
+		if (allow_dt2w) {
 			is_double_tap = 1;
 			pr_info("Gesture : Double Click.\n");
 			keycode = gesture_key_array[3];
@@ -1750,7 +1750,7 @@ static int32_t nvt_ts_suspend(struct device *dev)
 #endif /* #if NVT_TOUCH_ESD_PROTECT */
 
 #if WAKEUP_GESTURE
-	if (!allow_gesture && !screen_gesture) {
+	if (!allow_dt2w && !screen_gesture) {
 		disable_irq(ts->client->irq);
 
 		/* ---write i2c command to enter "deep sleep mode"--- */
@@ -1796,7 +1796,7 @@ static int32_t nvt_ts_suspend(struct device *dev)
 	mutex_unlock(&ts->lock);
 
 #if NVT_POWER_SOURCE_CUST_EN
-	if (!allow_gesture && !screen_gesture) {
+	if (!allow_dt2w && !screen_gesture) {
 		nvt_lcm_power_source_ctrl(data, 0); //disable vsp/vsn
 		pr_info("sleep suspend end disable vsp/vsn\n");
 	} else {
@@ -1833,7 +1833,7 @@ static int32_t nvt_ts_resume(struct device *dev)
 	nvt_bootloader_reset();
 	nvt_check_fw_reset_state(RESET_STATE_REK);
 
-	if (!allow_gesture && !screen_gesture)
+	if (!allow_dt2w && !screen_gesture)
 		enable_irq(ts->client->irq);
 
 #if NVT_TOUCH_ESD_PROTECT
