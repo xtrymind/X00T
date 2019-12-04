@@ -310,13 +310,15 @@ static irqreturn_t cdfinger_eint_handler(int irq, void *dev_id)
 static int cdfinger_eint_gpio_init(struct cdfingerfp_data *pdata)
 {
 	int ret = 0;
+	int irqf;
 
 	if (irq_flag == 1)
 		return ret;
 
+	irqf = IRQF_TRIGGER_RISING | IRQF_ONESHOT;
 	ret = request_threaded_irq(gpio_to_irq(pdata->irq_num),
 				   cdfinger_eint_handler, NULL,
-				   IRQF_TRIGGER_RISING, "cdfinger_eint", (void *)pdata);
+				   irqf, "cdfinger_eint", (void *)pdata);
 	if (ret < 0) {
 		pr_err("%s commonfp_request_irq error %d\n", __func__, ret);
 		return ret;
