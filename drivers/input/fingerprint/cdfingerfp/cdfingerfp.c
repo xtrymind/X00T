@@ -315,7 +315,7 @@ static int cdfinger_eint_gpio_init(struct cdfingerfp_data *pdata)
 	if (irq_flag == 1)
 		return ret;
 
-	irqf = IRQF_TRIGGER_RISING | IRQF_ONESHOT;
+	irqf = IRQF_TRIGGER_RISING | IRQF_ONESHOT | IRQF_PERF_CRITICAL;
 	ret = request_threaded_irq(gpio_to_irq(pdata->irq_num),
 				   cdfinger_eint_handler, NULL,
 				   irqf, "cdfinger_eint", (void *)pdata);
