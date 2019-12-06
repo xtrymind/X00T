@@ -119,7 +119,8 @@ struct cdfingerfp_data {
 	struct input_dev *cdfinger_input;
 	struct notifier_block notifier;
 	struct mutex buf_lock;
-	int irq_enable_status;
+	bool irq_enable_status;
+	int irq;
 } *g_cdfingerfp_data;
 
 static struct cdfinger_key_map maps[] = {
@@ -206,7 +207,7 @@ static int cdfinger_free_gpio(struct cdfingerfp_data *cdfinger)
 {
 	if (gpio_is_valid(cdfinger->irq_num)) {
 		gpio_free(cdfinger->irq_num);
-		free_irq(gpio_to_irq(cdfinger->irq_num), (void *)cdfinger);
+		free_irq(cdfinger->irq, (void *)cdfinger);
 	}
 
 	if (gpio_is_valid(cdfinger->reset_num))
@@ -296,14 +297,17 @@ static void cdfinger_async_report(void)
 	kill_fasync(&cdfingerfp->async_queue, SIGIO, POLL_IN);
 }
 
-static irqreturn_t cdfinger_eint_handler(int irq, void *dev_id)
+static irqreturn_t cdfinger_irq_handler(int irq, void *dev_id)
 {
 	struct cdfingerfp_data *pdata = g_cdfingerfp_data;
 
-	if (pdata->irq_enable_status == 1) {
-		__pm_wakeup_event(&pdata->cdfinger_lock, HOLD_TIME);
-		cdfinger_async_report();
-	}
+	pdata->irq_enable_status = true;
+
+	__pm_wakeup_event(&pdata->cdfinger_lock, HOLD_TIME);
+	cdfinger_async_report();
+
+	disable_irq_nosync(pdata->irq);
+
 	return IRQ_HANDLED;
 }
 
@@ -315,55 +319,21 @@ static int cdfinger_eint_gpio_init(struct cdfingerfp_data *pdata)
 	if (irq_flag == 1)
 		return ret;
 
+	pdata->irq_enable_status = false;
+	pdata->irq = gpio_to_irq(pdata->irq_num);
+
 	irqf = IRQF_TRIGGER_RISING | IRQF_ONESHOT | IRQF_PERF_CRITICAL;
-	ret = request_threaded_irq(gpio_to_irq(pdata->irq_num),
-				   cdfinger_eint_handler, NULL,
+	ret = request_threaded_irq(pdata->irq,
+				   cdfinger_irq_handler, NULL,
 				   irqf, "cdfinger_eint", (void *)pdata);
 	if (ret < 0) {
-		pr_err("%s commonfp_request_irq error %d\n", __func__, ret);
+		pr_err("%s: could not request irq %d\n", __func__, ret);
 		return ret;
 	}
-	enable_irq_wake(gpio_to_irq(pdata->irq_num));
-	pdata->irq_enable_status = 1;
+	enable_irq_wake(pdata->irq);
 	irq_flag = 1;
 
 	return ret;
-}
-
-static void cdfinger_enable_irq(struct cdfingerfp_data *pdata)
-{
-	if (pdata->irq_enable_status == 0) {
-		enable_irq(gpio_to_irq(pdata->irq_num));
-		enable_irq_wake(gpio_to_irq(pdata->irq_num));
-		pdata->irq_enable_status = 1;
-	}
-}
-
-static void cdfinger_disable_irq(struct cdfingerfp_data *pdata)
-{
-	if (pdata->irq_enable_status == 1) {
-		disable_irq(gpio_to_irq(pdata->irq_num));
-		disable_irq_wake(gpio_to_irq(pdata->irq_num));
-		pdata->irq_enable_status = 0;
-	}
-}
-
-static int cdfinger_irq_controller(struct cdfingerfp_data *pdata, int Onoff)
-{
-	if (irq_flag == 0) {
-		pr_err("%s irq not requested!\n", __func__);
-		return -EPERM;
-	}
-	if (Onoff == 1) {
-		cdfinger_enable_irq(pdata);
-		return 0;
-	}
-	if (Onoff == 0) {
-		cdfinger_disable_irq(pdata);
-		return 0;
-	}
-	pr_err("%s irq status parameter err=%d!\n", __func__, Onoff);
-	return -EPERM;
 }
 
 static int cdfinger_report_key(struct cdfingerfp_data *cdfinger,
@@ -409,6 +379,7 @@ static long cdfinger_ioctl(struct file *filp, unsigned int cmd,
 			   unsigned long arg)
 {
 	int err = 0;
+	int wake_lock_arg;
 	struct cdfingerfp_data *cdfinger = filp->private_data;
 
 	mutex_lock(&cdfinger->buf_lock);
@@ -420,11 +391,11 @@ static long cdfinger_ioctl(struct file *filp, unsigned int cmd,
 		err = cdfinger_eint_gpio_init(cdfinger);
 		break;
 	case CDFINGER_WAKE_LOCK:
-		if (arg)
+		wake_lock_arg = (int __user)arg;
+		if (wake_lock_arg)
 			__pm_wakeup_event(&cdfinger->cdfinger_lock, HOLD_TIME);
 		else
 			__pm_relax(&cdfinger->cdfinger_lock);
-
 		break;
 	case CDFINGER_RELEASE_DEVICE:
 		irq_flag = 0;
@@ -454,7 +425,14 @@ static long cdfinger_ioctl(struct file *filp, unsigned int cmd,
 		err = screen_status;
 		break;
 	case CDFINGER_ENABLE_IRQ:
-		err = cdfinger_irq_controller(cdfinger, arg);
+		if (unlikely(!irq_flag)) {
+			pr_err("%s: irq not requested!\n", __func__);
+			return -EPERM;
+		}
+		if (cdfinger->irq_enable_status) {
+			cdfinger->irq_enable_status = false;
+			enable_irq(cdfinger->irq);
+		}
 		break;
 	default:
 		break;
@@ -530,7 +508,7 @@ static int cdfinger_probe(struct platform_device *pdev)
 	cdfingerdev->miscdev = &st_cdfinger_dev;
 	cdfingerdev->cdfinger_dev = pdev;
 	mutex_init(&cdfingerdev->buf_lock);
-	wakeup_source_init(&cdfingerdev->cdfinger_lock, "cdfinger wakelock");
+	wakeup_source_init(&cdfingerdev->cdfinger_lock, "cdf_wakelock");
 	status = cdfinger_parse_dts(&cdfingerdev->cdfinger_dev->dev,
 				    cdfingerdev);
 	if (status != 0) {
