@@ -4517,6 +4517,8 @@ static int synaptics_rmi4_probe(struct platform_device *pdev)
 					"%s:  func to synaptics_rmi4_probe\n",
 					__func__);
 
+	return -ENODEV;
+
 	hw_if = pdev->dev.platform_data;
 	if (!hw_if) {
 		dev_err(&pdev->dev,
