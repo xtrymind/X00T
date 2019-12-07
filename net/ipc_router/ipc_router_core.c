@@ -3967,6 +3967,10 @@ static void *ipc_router_create_log_ctx(char *name)
 {
 	struct ipc_rtr_log_ctx *sub_log_ctx;
 
+#ifndef CONFIG_IPC_LOGGING
+	return NULL;
+#endif
+
 	sub_log_ctx = kmalloc(sizeof(struct ipc_rtr_log_ctx),
 				GFP_KERNEL);
 	if (!sub_log_ctx)
