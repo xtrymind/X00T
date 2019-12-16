@@ -13,24 +13,23 @@ menuconfig INPUT_FINGERPRINT
 if INPUT_FINGERPRINT
 
 config COMMON_FP
-    bool "Fingerprint common"
+	bool "Fingerprint common"
+	default n
 	help
-		Say Y here if you use common fp.
-		If unsure, say N.
+	  Say Y here if you use common fp.
+	  If unsure, say N.
 
 config CDFINGER_FP
-    bool "Fingerprint cdfinger"
+	bool "Fingerprint cdfinger"
 	help
-		Say Y here if you use common fp.
-		If unsure, say N.
+	  Say Y here if you use cdfinger fingerprint.
+	  If unsure, say N.
 
-# Huaqin add for ZQL1650-143 by wangxiang at 2018/02/09 start
 config GOODIX_FP
-    bool "Fingerprint goodix"
+	bool "Fingerprint goodix"
+	select COMMON_FP
 	help
-		Say Y here if you use common fp.
-		If unsure, say N.
-
-# Huaqin add for ZQL1650-143 by wangxiang at 2018/02/09 end
+	  Say Y here if you use goodix fingerprint.
+	  If unsure, say N.
 
 endif
