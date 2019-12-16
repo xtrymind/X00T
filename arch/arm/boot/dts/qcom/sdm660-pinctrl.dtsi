@@ -1875,6 +1875,62 @@
 					input-enable;
 				};
 			};
+
+		cdfinger_reset {
+			cdfinger_reset_active: cdfinger_reset_active {
+				mux {
+					pins = "gpio20";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio20";
+					drive-strength = <2>;
+					bias-pull-up;
+				};
+			};
+
+			cdfinger_reset_sleep: cdfinger_reset_sleep {
+				mux {
+					pins = "gpio20";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio20";
+					drive-strength = <2>;
+					bias-pull-up;
+				};
+			};
+		};
+
+		cdfinger_irq {
+			cdfinger_irq_active: cdfinger_irq_active {
+				mux {
+					pins = "gpio72";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio72";
+					drive-strength = <2>;
+					bias-disable;
+				};
+			};
+
+			cdfinger_irq_sleep: cdfinger_irq_sleep {
+				mux {
+					pins = "gpio72";
+					function = "gpio";
+				};
+
+				config {
+					pins = "gpio72";
+					drive-strength = <2>;
+					bias-disable;
+				};
+			};
+		};
 /* Huaqin modify for ZQL1650-143 by wangxiang at 2018/01/23 end */
 /*Huaqin modify for ZQL1650-141 by chenyijun5 at 2018/02/01 start*/
 		psensor_irq {
