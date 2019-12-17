@@ -101,7 +101,7 @@ struct cdfinger_key_map {
 static int isInKeyMode; // key mode
 static int screen_status = 1; // screen on
 static int isInit;
-static char wake_flag;
+static bool wake_flag;
 
 #define FP_BOOST_MS 500
 #define FP_BOOST_INTERVAL (500 * USEC_PER_MSEC)
@@ -123,7 +123,7 @@ struct cdfingerfp_data {
 	struct input_dev *cdfinger_input;
 	struct notifier_block notifier;
 	struct mutex buf_lock;
-	int irq_enable_status;
+	bool irq_enable_status;
 } *g_cdfingerfp_data;
 
 static struct cdfinger_key_map maps[] = {
@@ -339,14 +339,14 @@ static int cdfinger_release(struct inode *inode, struct file *file)
 static void cdfinger_wake_lock(struct cdfingerfp_data *pdata, int arg)
 {
 	if (arg) {
-		if (wake_flag == 0) {
+		if (!wake_flag) {
 			__pm_stay_awake(&pdata->cdfinger_lock);
-			wake_flag = 1;
+			wake_flag = true;
 		}
 	} else {
-		if (wake_flag == 1) {
+		if (wake_flag) {
 			__pm_relax(&pdata->cdfinger_lock);
-			wake_flag = 0;
+			wake_flag = false;
 		}
 	}
 }
@@ -360,7 +360,7 @@ static void cdfinger_async_report(void)
 static irqreturn_t cdfinger_eint_handler(int irq, void *dev_id)
 {
 	struct cdfingerfp_data *pdata = g_cdfingerfp_data;
-	if (pdata->irq_enable_status == 1) {
+	if (pdata->irq_enable_status) {
 		fp_cpuboost();
 		cdfinger_wake_lock(pdata, 1);
 		cdfinger_async_report();
@@ -386,7 +386,7 @@ static int cdfinger_init_irq(struct cdfingerfp_data *pdata)
 		return error;
 	}
 	enable_irq_wake(gpio_to_irq(pdata->irq_num));
-	pdata->irq_enable_status = 1;
+	pdata->irq_enable_status = true;
 	isInit = 1;
 	return error;
 }
@@ -394,19 +394,19 @@ static int cdfinger_init_irq(struct cdfingerfp_data *pdata)
 
 static void cdfinger_enable_irq(struct cdfingerfp_data *pdata)
 {
-	if (pdata->irq_enable_status == 0) {
+	if (!pdata->irq_enable_status) {
 		enable_irq(gpio_to_irq(pdata->irq_num));
 		enable_irq_wake(gpio_to_irq(pdata->irq_num));
-		pdata->irq_enable_status = 1;
+		pdata->irq_enable_status = true;
 	}
 }
 
 static void cdfinger_disable_irq(struct cdfingerfp_data *pdata)
 {
-	if (pdata->irq_enable_status == 1) {
+	if (pdata->irq_enable_status) {
 		disable_irq(gpio_to_irq(pdata->irq_num));
 		disable_irq_wake(gpio_to_irq(pdata->irq_num));
-		pdata->irq_enable_status = 0;
+		pdata->irq_enable_status = false;
 	}
 }
 
