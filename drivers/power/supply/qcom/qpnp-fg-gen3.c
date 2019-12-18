@@ -2853,7 +2853,6 @@ static void status_change_work(struct work_struct *work)
 	}
 
 	chip->charge_done = prop.intval;
-	pr_info("chip->charge_done=%d\n", chip->charge_done);
 	fg_cycle_counter_update(chip);
 	fg_cap_learning_update(chip);
 
