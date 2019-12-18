@@ -178,7 +178,7 @@
 static bool g_bathealth_initialized;
 static bool g_bathealth_trigger;
 static bool g_last_bathealth_trigger;
-static bool g_health_debug_enable = true;
+static bool g_health_debug_enable = false;
 static bool g_health_upgrade_enable = true;
 static int g_health_upgrade_index;
 static int g_health_upgrade_start_level = BAT_HEALTH_START_LEVEL;
@@ -5200,7 +5200,7 @@ static void update_battery_health(struct fg_chip *chip)
 			g_bat_health_data.accumulate_time;
 
 		if (g_health_debug_enable)
-			pr_debug("accumulate_time(%llu), accumulate_current(%llu), bat_current(%d), bat_current_avg(%llu), bat_capacity(%d)",
+			pr_info("accumulate_time(%llu), accumulate_current(%llu), bat_current(%d), bat_current_avg(%llu), bat_capacity(%d)",
 				 g_bat_health_data.accumulate_time,
 				 g_bat_health_data.accumulate_current/1000,
 				 g_bat_health_data.bat_current/1000,
