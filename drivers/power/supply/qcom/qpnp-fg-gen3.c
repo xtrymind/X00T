@@ -164,7 +164,7 @@
 #define FILE_OP_WRITE   1
 
 /* ASUS_BS battery health upgrade */
-#define BATTERY_HEALTH_UPGRADE_TIME 600
+#define BATTERY_HEALTH_UPGRADE_TIME 60
 #define BATTERY_METADATA_UPGRADE_TIME 60
 #define BAT_HEALTH_DATA_OFFSET  0x0
 #define BAT_HEALTH_DATA_MAGIC  0x86
@@ -5240,7 +5240,7 @@ static void update_battery_health(struct fg_chip *chip)
 void battery_health_upgrade_data_polling(int time)
 {
 	cancel_delayed_work(&battery_health_work);
-	schedule_delayed_work(&battery_health_work, time * HZ);
+	schedule_delayed_work(&battery_health_work, msecs_to_jiffies(time * 1000));
 }
 
 void battery_health_worker(struct work_struct *work)
