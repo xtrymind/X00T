@@ -5218,14 +5218,14 @@ static void update_battery_health(struct fg_chip *chip)
 				360;
 			g_bat_health_data.bat_health = (int)((health_t + 5)/10);
 
-			pr_debug("battery health = (%d,%d), T(%lu), bat_current_avg(%llu)",
-				 g_bat_health_data.bat_health,
+			pr_info("%s: battery health = (%d,%d), T(%lu), bat_current_avg(%llu)",
+				 __func__, g_bat_health_data.bat_health,
 				 g_bat_health_avg, T,
 				 g_bat_health_data.bat_current_avg/1000);
 			backup_bat_health();
 			batt_health_csc_backup();
-			pr_debug("battery health = (%d,%d), T(%lu), bat_current_avg(%llu)",
-				 g_bat_health_data.bat_health,
+			pr_info("%s: battery health = (%d,%d), T(%lu), bat_current_avg(%llu)",
+				 __func__, g_bat_health_data.bat_health,
 				 g_bat_health_avg, T,
 				 g_bat_health_data.bat_current_avg/1000);
 
