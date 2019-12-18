@@ -173,7 +173,7 @@
 #define ZB602KL_DESIGNED_CAPACITY 4750//mAh
 #define BAT_HEALTH_DATA_FILE_NAME   "/sdcard/bat_health"
 #define BAT_HEALTH_DATA_SD_FILE_NAME   "/sdcard/.bh"
-#define BAT_HEALTH_START_LEVEL 70
+#define BAT_HEALTH_START_LEVEL 87
 #define BAT_HEALTH_END_LEVEL 100
 static bool g_bathealth_initialized;
 static bool g_bathealth_trigger;
