@@ -51,7 +51,7 @@ struct cdfinger_key_map {
 	unsigned int code;
 };
 
-#define HOLD_TIME 1500
+#define HOLD_TIME 1000
 
 #define CDFINGER_IOCTL_MAGIC_NO		0xFB
 #define CDFINGER_INIT				_IOW(CDFINGER_IOCTL_MAGIC_NO, 0, uint8_t)
@@ -418,12 +418,6 @@ static long cdfinger_ioctl(struct file *filp, unsigned int cmd,
 		isInit = 0;
 		cdfinger_free_gpio(cdfinger);
 		misc_deregister(cdfinger->miscdev);
-		break;
-	case CDFINGER_WAKE_LOCK:
-		if (arg && cdfinger->irq_enable_status)
-			__pm_wakeup_event(&cdfinger->cdfinger_lock, HOLD_TIME);
-		else
-			__pm_relax(&cdfinger->cdfinger_lock);
 		break;
 	case CDFINGER_POWER_ON:
 		err = cdfinger_power_on(cdfinger);
