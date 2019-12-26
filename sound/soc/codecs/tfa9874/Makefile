@@ -16,9 +16,6 @@ endif
 
 ifneq ($(KERNELRELEASE),)
 
-# debugging support (also enables trace_printk)
-EXTRA_CFLAGS += -DDEBUG
-
 EXTRA_CFLAGS += -I$(src)/inc
 EXTRA_CFLAGS += -Werror
 EXTRA_CFLAGS += -Wno-enum-conversion
