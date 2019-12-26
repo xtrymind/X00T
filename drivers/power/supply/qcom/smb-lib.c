@@ -3420,6 +3420,7 @@ void asus_batt_RTC_work(struct work_struct *dat)
 #define ICL_1500mA	0x3C
 #define ICL_1900mA	0x4C
 #define ICL_2000mA	0x50
+#define ICL_2100mA	0x54
 #define ICL_2850mA	0x72
 #define ICL_3000mA	0x78
 #define ASUS_MONITOR_CYCLE		60000
@@ -3451,6 +3452,7 @@ void smblib_asus_monitor_start(struct smb_charger *chg, int time)
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_1500MA	0x3C
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_2000MA	0x50
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_2050MA	0x52
+#define SMBCHG_FAST_CHG_CURRENT_VALUE_2100MA	0x54
 #define SMBCHG_FAST_CHG_CURRENT_VALUE_3000MA	0x78
 enum JEITA_state {
 	JEITA_STATE_INITIAL,
@@ -3737,7 +3739,7 @@ void jeita_rule(void)
 	case JEITA_STATE_RANGE_100_to_500:
 		charging_enable = EN_BAT_CHG_EN_COMMAND_TRUE;
 		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P350;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2000MA;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2100MA;
 		pr_info("%s: 10 <= temperature < 50\n", __func__);
 		rc = SW_recharge(smbchg_dev);
 		if (rc < 0)
@@ -3747,7 +3749,7 @@ void jeita_rule(void)
 	case JEITA_STATE_RANGE_500_to_600:
 		charging_enable = EN_BAT_CHG_EN_COMMAND_TRUE;
 		FV_CFG_reg_value = SMBCHG_FLOAT_VOLTAGE_VALUE_4P004;
-		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2000MA;
+		FCC_reg_value = SMBCHG_FAST_CHG_CURRENT_VALUE_2100MA;
 		pr_info("%s: 50 <= temperature < 60\n", __func__);
 		break;
 	case JEITA_STATE_LARGER_THAN_600:
@@ -4022,7 +4024,7 @@ void asus_adapter_adc_work(struct work_struct *work)
 	case ASUS_200K:
 	case PB:
 	case OTHERS:
-		usb_max_current = ICL_2000mA;
+		usb_max_current = ICL_2100mA;
 		break;
 	case ADC_NOT_READY:
 		usb_max_current = ICL_1000mA;
