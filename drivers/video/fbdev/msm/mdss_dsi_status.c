@@ -258,7 +258,6 @@ int __init mdss_dsi_status_init(void)
 		return -ENOMEM;
 	}
 
-	pstatus_data->is_first_check = 1;
 	pstatus_data->fb_notifier.notifier_call = fb_event_callback;
 
 	rc = fb_register_client(&pstatus_data->fb_notifier);
