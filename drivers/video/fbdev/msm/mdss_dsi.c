@@ -38,8 +38,6 @@
 
 #define CMDLINE_DSI_CTL_NUM_STRING_LEN 2
 
-extern char mdss_mdp_panel[MDSS_MAX_PANEL_LEN];
-
 /* Master structure to hold all the information about the DSI/panel */
 static struct mdss_dsi_data *mdss_dsi_res;
 
