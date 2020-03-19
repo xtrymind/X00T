@@ -1110,6 +1110,10 @@ static void nvt_ts_work_func(struct work_struct *work)
 	}
 #endif
 
+	ret = tp_status_fun();
+	if (ret)
+		goto XFER_ERROR;
+
 #if WAKEUP_GESTURE
 	if (bTouchIsAwake == 0) {
 		input_id = (uint8_t)(point_data[1] >> 3);
