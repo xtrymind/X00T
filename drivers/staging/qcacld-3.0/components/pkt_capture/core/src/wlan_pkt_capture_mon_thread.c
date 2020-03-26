@@ -22,6 +22,7 @@
 
 #include "wlan_pkt_capture_priv.h"
 #include <linux/kthread.h>
+#include "i_qdf_event.h"
 
 void pkt_capture_free_mon_pkt_freeq(struct pkt_capture_mon_context *mon_ctx)
 {
